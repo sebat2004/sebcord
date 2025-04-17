@@ -23,13 +23,17 @@
     "dependencies": {
         "@electron-toolkit/preload": "^3.0.1",
         "@electron-toolkit/utils": "^4.0.0",
-        "electron-updater": "^6.3.9"
+        "@tailwindcss/postcss": "^4.1.4",
+        "autoprefixer": "^10.4.21",
+        "electron-updater": "^6.3.9",
+        "prettier-plugin-tailwind": "^2.2.12",
+        "tailwindcss": "^4.1.4"
     },
     "devDependencies": {
         "@electron-toolkit/eslint-config-prettier": "^3.0.0",
         "@electron-toolkit/eslint-config-ts": "^3.0.0",
         "@electron-toolkit/tsconfig": "^1.0.1",
-        "@types/node": "^22.13.13",
+        "@types/node": "^22.14.1",
         "@types/react": "^18.3.18",
         "@types/react-dom": "^18.3.5",
         "@vitejs/plugin-react": "^4.3.4",
