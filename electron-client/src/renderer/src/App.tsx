@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import LoginButton from './components/buttons'
 
 function App(): JSX.Element {
     const [response, setResponse] = useState(null)
@@ -29,6 +30,7 @@ function App(): JSX.Element {
             ) : (
                 <p>Loading...</p>
             )}
+            <LoginButton />
         </>
     )
 }
