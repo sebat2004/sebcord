@@ -21,7 +21,7 @@ function App(): JSX.Element {
 
     return (
         <>
-            <h1>Hello, Discord Clone!</h1>
+            <h1 className="text-xl">Hello, Discord Clone!</h1>
             {response ? (
                 <div>
                     <h2>Response from server:</h2>

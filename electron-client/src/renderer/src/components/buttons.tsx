@@ -1,5 +1,7 @@
+import { Button } from './ui/button'
+
 const LoginButton = () => {
-    return <div>LoginButton</div>
+    return <Button>Login</Button>
 }
 
 export default LoginButton
