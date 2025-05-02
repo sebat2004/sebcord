@@ -9,6 +9,7 @@ import LoginPage from './pages/LoginPage'
 import { QueryClient, QueryClientProvider } from 'react-query'
 import Layout from './layout'
 import ProtectedRoute from './components/ProtectedRoutes'
+import RegistrationPage from './pages/RegistrationPage'
 
 const queryClient = new QueryClient()
 
@@ -20,6 +21,7 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
                     <Route element={<Layout />}>
                         <Route index element={<LandingPage />} />
                         <Route path="/login" element={<LoginPage />} />
+                        <Route path="/register" element={<RegistrationPage />} />
                     </Route>
                     <Route element={<ProtectedRoute />}>
                         <Route path="/home" element={<HomePage />} />

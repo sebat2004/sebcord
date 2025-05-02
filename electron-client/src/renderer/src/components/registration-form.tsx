@@ -3,11 +3,11 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useLogin } from '@/mutations'
+import { useRegister } from '@/mutations'
 import { Link } from 'react-router'
 
-export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) {
-    const { mutate } = useLogin()
+export function RegistrationForm({ className, ...props }: React.ComponentProps<'div'>) {
+    const { mutate } = useRegister()
 
     const handleSubmit = (e: React.FormEvent<HTMLFormElement>) => {
         e.preventDefault()
@@ -15,8 +15,9 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
         const formData = new FormData(e.currentTarget)
         const email = formData.get('email') as string
         const password = formData.get('password') as string
+        const username = formData.get('username') as string
 
-        mutate({ email, password })
+        mutate({ email, password, username })
     }
 
     return (
@@ -28,32 +29,30 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
                             <div className="flex flex-col items-center text-center">
                                 <h1 className="text-2xl font-bold">Welcome back</h1>
                                 <p className="text-muted-foreground text-balance">
-                                    Login to your Sebcord account
+                                    Register a new Sebcord account!
                                 </p>
+                            </div>
+                            <div className="grid gap-3">
+                                <Label htmlFor="username">Username</Label>
+                                <Input name="username" type="text" placeholder="joe" required />
                             </div>
                             <div className="grid gap-3">
                                 <Label htmlFor="email">Email</Label>
                                 <Input
                                     name="email"
                                     type="email"
-                                    placeholder="m@example.com"
+                                    placeholder="joe@example.com"
                                     required
                                 />
                             </div>
                             <div className="grid gap-3">
                                 <div className="flex items-center justify-between">
                                     <Label htmlFor="password">Password</Label>
-                                    <a
-                                        href="#"
-                                        className="ml-auto text-sm underline-offset-2 hover:underline"
-                                    >
-                                        Forgot your password?
-                                    </a>
                                 </div>
                                 <Input name="password" type="password" required />
                             </div>
                             <Button type="submit" className="w-full cursor-pointer">
-                                Login
+                                Register
                             </Button>
                             <div className="after:border-border relative text-center text-sm after:absolute after:inset-0 after:top-1/2 after:z-0 after:flex after:items-center after:border-t">
                                 <span className="bg-card text-muted-foreground relative z-10 px-2">
@@ -68,7 +67,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
                                             fill="currentColor"
                                         />
                                     </svg>
-                                    <span className="sr-only">Login with Apple</span>
+                                    <span className="sr-only">Register with Apple</span>
                                 </Button>
                                 <Button variant="outline" type="button" className="w-full">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -77,7 +76,7 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
                                             fill="currentColor"
                                         />
                                     </svg>
-                                    <span className="sr-only">Login with Google</span>
+                                    <span className="sr-only">Register with Google</span>
                                 </Button>
                                 <Button variant="outline" type="button" className="w-full">
                                     <svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24">
@@ -86,13 +85,13 @@ export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) 
                                             fill="currentColor"
                                         />
                                     </svg>
-                                    <span className="sr-only">Login with Meta</span>
+                                    <span className="sr-only">Register with Meta</span>
                                 </Button>
                             </div>
                             <div className="text-center text-sm">
-                                Don&apos;t have an account?{' '}
-                                <Link to="/register" className="underline underline-offset-4">
-                                    Sign up
+                                Already have an account?{' '}
+                                <Link to="/login" className="underline underline-offset-4">
+                                    Log in
                                 </Link>
                             </div>
                         </div>
