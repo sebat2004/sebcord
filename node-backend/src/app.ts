@@ -8,13 +8,16 @@ import api from './api';
 import MessageResponse from './interfaces/MessageResponse';
 
 require('dotenv').config();
+const cookieParser = require("cookie-parser");
 
 const app = express();
 
 app.use(morgan('dev'));
 app.use(helmet());
-app.use(cors());
+app.use(cors({origin: process.env.FRONTEND_DOMAIN || 'http://localhost:5173', credentials: true }));
 app.use(express.json());
+app.use(express.urlencoded({ extended: true }));
+app.use(cookieParser());
 
 app.get<{}, MessageResponse>('/', (req, res) => {
   res.json({

@@ -1,7 +1,18 @@
+import { Link } from 'react-router'
 import { Button } from './ui/button'
 
-const LoginButton = () => {
-    return <Button>Login</Button>
+export const LoginButton = () => {
+    return (
+        <Button asChild>
+            <Link to="/login">Login</Link>
+        </Button>
+    )
 }
 
-export default LoginButton
+export const LogoutButton = () => {
+    return (
+        <Button asChild>
+            <Link to="/logout">Logout</Link>
+        </Button>
+    )
+}
