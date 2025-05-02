@@ -1,18 +1,18 @@
-import express from 'express';
+import express from "express";
 
-import MessageResponse from '../interfaces/MessageResponse';
-import emojis from './emojis';
-import user from './user';
+import MessageResponse from "../interfaces/MessageResponse";
+import emojis from "./emojis";
+import user from "./user";
 
 const router = express.Router();
 
-router.get<{}, MessageResponse>('/', (req, res) => {
+router.get<{}, MessageResponse>("/", (req, res) => {
   res.json({
-    message: 'API - 👋🌎🌍🌏',
+    message: "API - 👋🌎🌍🌏",
   });
 });
 
-router.use('/emojis', emojis);
-router.use('/user', user);
+router.use("/emojis", emojis);
+router.use("/user", user);
 
 export default router;
