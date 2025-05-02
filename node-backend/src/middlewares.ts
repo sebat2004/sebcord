@@ -49,9 +49,7 @@ export const authenticate = (
     }
 
     try {
-      console.log("refreshToken", refreshToken);
       const decoded = jwt.verify(refreshToken, secretKey);
-      console.log("decoded", decoded);
       const accessToken = jwt.sign({ user: decoded.user }, secretKey, {
         expiresIn: "1h",
       });

@@ -8,6 +8,7 @@ import api from "./api";
 import MessageResponse from "./interfaces/MessageResponse";
 
 require("dotenv").config();
+
 const cookieParser = require("cookie-parser");
 
 const app = express();

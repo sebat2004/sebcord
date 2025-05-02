@@ -2,6 +2,10 @@ import express from "express";
 
 import MessageResponse from "../interfaces/MessageResponse";
 import { authenticate } from "../middlewares";
+import { validateUser } from "../validators/user";
+
+import pool from "../db";
+import bcrypt from "bcrypt";
 
 const jwt = require("jsonwebtoken");
 const secretKey =
@@ -15,31 +19,83 @@ router.get<{}, MessageResponse>("/authenticated", authenticate, (req, res) => {
   });
 });
 
-router.post("/login", (req, res) => {
-  const user = {
-    id: 1,
-    username: "john.doe",
-  };
+router.post("/register", async (req, res) => {
+  const { username, email, password } = req.body;
 
-  const accessToken = jwt.sign({ user }, secretKey, {
-    expiresIn: "1h",
-    algorithm: "HS256",
-  });
-  const refreshToken = jwt.sign({ user }, secretKey, {
-    expiresIn: "1d",
-    algorithm: "HS256",
-  });
+  if (!username || !email || !password)
+    return res.status(400).send("Username, email, and password are required.");
 
-  res
-    .cookie("refreshToken", refreshToken, {
-      httpOnly: true,
-      sameSite: process.env.NODE_ENV === "production" ? "lax" : "lax",
-      secure: process.env.NODE_ENV === "production",
-      path: "/",
-      maxAge: 24 * 60 * 60 * 1000,
-    })
-    .header("Authorization", accessToken)
-    .send(user);
+  try {
+    // Check if the user already exists
+    const { rowCount: dup } = await pool.query(
+      `SELECT 1 FROM users
+          WHERE email    = $1
+             OR username = $2
+         LIMIT 1`,
+      [email, username],
+    );
+    if (dup)
+      return res
+        .status(409)
+        .send("An account with that e‑mail or username already exists.");
+
+    // Insert the user into db
+    const passwordHash = await bcrypt.hash(password, 12);
+    const { rows } = await pool.query(
+      `INSERT INTO users (username, email, password_hash)
+              VALUES ($1, $2, $3)
+           RETURNING id, username, email`,
+      [username, email, passwordHash],
+    );
+    const user = rows[0];
+
+    // Send access and refresh tokens
+    const accessToken = jwt.sign({ user }, secretKey, { expiresIn: "1h" });
+    const refreshToken = jwt.sign({ user }, secretKey, { expiresIn: "1d" });
+
+    res
+      .cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: 24 * 60 * 60 * 1000,
+      })
+      .header("Authorization", accessToken)
+      .status(201)
+      .json(user);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal server error.");
+  }
+});
+
+router.post("/login", async (req, res) => {
+  const { email, password } = req.body;
+  if (!email || !password)
+    return res.status(400).send("Email and password are required.");
+
+  try {
+    const user = await validateUser(email, password);
+    if (!user) return res.status(401).send("Invalid email or password.");
+
+    // Send access and refresh tokens
+    const accessToken = jwt.sign({ user }, secretKey, { expiresIn: "1h" });
+    const refreshToken = jwt.sign({ user }, secretKey, { expiresIn: "1d" });
+
+    res
+      .cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 24 * 60 * 60 * 1000,
+      })
+      .header("Authorization", accessToken)
+      .json(user);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal server error.");
+  }
 });
 
 router.post("/refresh", (req, res) => {
