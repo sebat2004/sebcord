@@ -20,12 +20,16 @@ const jwt = require("jsonwebtoken");
 const router = express.Router();
 
 // Routes
-router.get<{}, AuthenticatedResponse>("/authenticated", authenticate, (req, res) => {
-  res.json({
-    authenticated: true,
-    user: req.user,
-  });
-});
+router.get<{}, AuthenticatedResponse>(
+  "/authenticated",
+  authenticate,
+  (req, res) => {
+    res.json({
+      authenticated: true,
+      user: req.user,
+    });
+  },
+);
 
 router.get("/", authenticate, async (_req: Request, res: Response) => {
   try {
@@ -112,14 +116,14 @@ router.post("/login", async (req, res) => {
         httpOnly: true,
         sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         secure: process.env.NODE_ENV === "production",
-        maxAge: 24 * 60 * 60 * 1000 // 24 hrs,
+        maxAge: 24 * 60 * 60 * 1000, // 24 hrs,
       })
       .cookie("accessToken", accessToken, {
         httpOnly: true,
         sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         secure: process.env.NODE_ENV === "production",
-        maxAge: 5 * 60 * 1000 // 5 mins,
-        })
+        maxAge: 5 * 60 * 1000, // 5 mins,
+      })
       .json(user);
   } catch (err) {
     console.error(err);

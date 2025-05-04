@@ -3,6 +3,6 @@ export interface MessageResponse {
 }
 
 export interface AuthenticatedResponse {
-    authenticated: boolean;
-    user?: Express.User;
+  authenticated: boolean;
+  user?: Express.User;
 }
