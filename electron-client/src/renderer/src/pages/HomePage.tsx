@@ -24,9 +24,11 @@ interface AcceptCallEvent {
 function HomePage(): JSX.Element {
     const { mutate, data: authenticatedData } = useAuthenticated()
     const { data: users } = useGetUsers()
-    const [pendingCall, setPendingCall] = useState<RequestCallEvent>({} as RequestCallEvent)
+    const [pendingCall, setPendingCall] = useState<RequestCallEvent | null>(null)
     const socketCxn = useRef<null | Socket>(null)
     const peerConnectionRef = useRef<RTCPeerConnection | null>(null)
+    const localVideoRef = useRef<HTMLVideoElement>(null)
+    const remoteVideoRef = useRef<HTMLVideoElement>(null)
 
     const rtcConfig: RTCConfiguration = {
         iceServers: [{ urls: 'stun:stun.l.google.com:19302' }]
@@ -93,6 +95,18 @@ function HomePage(): JSX.Element {
         const peerConnection = new RTCPeerConnection(rtcConfig)
         peerConnectionRef.current = peerConnection
 
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        console.log('Got local stream', stream)
+        localVideoRef.current!.srcObject = stream
+        stream.getTracks().forEach((track) => {
+            console.log('Adding track', track)
+            peerConnection.addTrack(track, stream)
+        })
+        peerConnection.ontrack = (event) => {
+            console.log('Remote track:', event)
+            remoteVideoRef.current!.srcObject = event.streams[0]
+        }
+
         const dataChannel = peerConnection.createDataChannel('voice-call')
         dataChannel.onopen = () => {
             console.log('Data channel is open')
@@ -129,6 +143,18 @@ function HomePage(): JSX.Element {
 
         const peerConnection = new RTCPeerConnection(rtcConfig)
         peerConnectionRef.current = peerConnection
+
+        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
+        console.log('Got local stream', stream)
+        localVideoRef.current!.srcObject = stream
+        stream.getTracks().forEach((track) => {
+            console.log('Adding track', track)
+            peerConnection.addTrack(track, stream)
+        })
+        peerConnection.ontrack = (event) => {
+            console.log('Remote track:', event)
+            remoteVideoRef.current!.srcObject = event.streams[0]
+        }
 
         peerConnection.onicecandidate = (event) => {
             if (!event.candidate) {
@@ -167,40 +193,40 @@ function HomePage(): JSX.Element {
     }
 
     return (
-        <main className="flex flex-col items-center justify-center h-screen">
-            <h1 className="text-xl">
-                Welcome to the Home page, {authenticatedData.user.username}!
-            </h1>
-            <p className="text-gray-500">List of users from the database:</p>
-            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4 mt-4">
-                {users &&
-                    users.map((user) => (
-                        <Card
-                            key={user.id}
-                            className="flex flex-col justify-center p-4 border rounded"
-                        >
-                            <h2 className="text-lg text-center">{user.username}</h2>
-                            <p className="text-gray-500 text-center">{user.email}</p>
-                            <Button
-                                className="mt-2"
-                                variant="default"
-                                onClick={() => handleCallUser(user.id)}
-                            >
-                                Call User
-                            </Button>
-                        </Card>
-                    ))}
+        <main className="flex flex-col items-center justify-center h-screen space-y-6">
+            <h1 className="text-xl">Hello, {authenticatedData.user.username}</h1>
+            <div className="flex space-x-4 gap-20">
+                <video
+                    ref={localVideoRef}
+                    autoPlay
+                    muted
+                    playsInline
+                    className="w-48 h-36 bg-black"
+                />
+                <video ref={remoteVideoRef} autoPlay playsInline className="w-48 h-36 bg-black" />
             </div>
-            <Dialog open={pendingCall?.receiverId === authenticatedData.user!.id}>
+            <div className="grid grid-cols-1 sm:grid-cols-2 md:grid-cols-3 gap-4">
+                {users?.map((u) => (
+                    <Card key={u.id} className="p-4 flex flex-col items-center">
+                        <h2 className="text-lg">{u.username}</h2>
+                        <Button onClick={() => handleCallUser(u.id)}>Call</Button>
+                    </Card>
+                ))}
+            </div>
+            <Dialog open={!!pendingCall}>
                 <DialogContent>
                     <DialogHeader>
                         <DialogTitle>Incoming Call</DialogTitle>
-                        <DialogDescription>
-                            You have an incoming call from {pendingCall.callerId}
-                        </DialogDescription>
+                        <DialogDescription>From {pendingCall?.callerId}</DialogDescription>
                     </DialogHeader>
-                    <div className="flex justify-end">
-                        <Button onClick={() => handleAcceptCall(pendingCall)}>Accept</Button>
+                    <div className="flex justify-end space-x-2">
+                        <Button
+                            variant="outline"
+                            onClick={() => setPendingCall({} as RequestCallEvent)}
+                        >
+                            Decline
+                        </Button>
+                        <Button onClick={() => handleAcceptCall(pendingCall!)}>Accept</Button>
                     </div>
                 </DialogContent>
             </Dialog>
