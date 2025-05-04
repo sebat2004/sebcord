@@ -1,5 +1,5 @@
 import { useEffect } from 'react'
-import { useAuthenticated } from '@/mutations'
+import { useAuthenticated } from '@/hooks/mutations'
 import { Button } from '@/components/ui/button'
 import { Link } from 'react-router'
 

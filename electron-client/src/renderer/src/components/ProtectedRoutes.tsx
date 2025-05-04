@@ -1,4 +1,4 @@
-import { useAuthenticated } from '@/mutations'
+import { useAuthenticated } from '@/hooks/mutations'
 import { useEffect } from 'react'
 import { Outlet, useNavigate } from 'react-router'
 

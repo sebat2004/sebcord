@@ -1,7 +1,8 @@
 import { useMutation } from 'react-query'
-import { API_URL } from './constants'
+import { API_URL } from '../constants'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router'
+import { User } from '@/types'
 
 interface LoginData {
     email: string
@@ -68,19 +69,28 @@ export const useLogin = () => {
     })
 }
 
+interface AuthenticatedResponse {
+    authenticated: boolean
+    user?: User
+}
+
 export const useAuthenticated = () => {
     const navigate = useNavigate()
 
     return useMutation({
-        mutationFn: () => {
-            return fetch(`${API_URL}/user/authenticated`, {
+        mutationFn: async () => {
+            const data = await fetch(`${API_URL}/user/authenticated`, {
                 method: 'GET',
                 credentials: 'include'
             })
-        },
-        onSuccess: async (response) => {
-            const data = await response.json()
-            console.log('Authenticated:', data)
+
+            const response = await data.json()
+            console.log('Authenticated response:', response)
+
+            if (!response.authenticated) {
+                throw new Error('Not authenticated')
+            }
+            return response as AuthenticatedResponse
         },
         onError: (error) => {
             console.error('Authentication failed:', error)

@@ -3,7 +3,7 @@ import { Button } from '@/components/ui/button'
 import { Card, CardContent } from '@/components/ui/card'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
-import { useLogin } from '@/mutations'
+import { useLogin } from '@/hooks/mutations'
 import { Link } from 'react-router'
 
 export function LoginForm({ className, ...props }: React.ComponentProps<'div'>) {
