@@ -1,22 +1,46 @@
-import express from "express";
+import express, { Request, Response } from "express";
 
-import MessageResponse from "../interfaces/MessageResponse";
 import { authenticate } from "../middlewares";
 import { validateUser } from "../validators/user";
 
 import pool from "../db";
 import bcrypt from "bcrypt";
+import { secretKey } from "../constants";
+import { AuthenticatedResponse } from "../interfaces/MessageResponse";
+
+type DbUser = {
+  id: number;
+  username: string;
+  email: string;
+  created_at: string;
+  updated_at: string;
+};
 
 const jwt = require("jsonwebtoken");
-const secretKey =
-  process.env.AUTH_SECRET_KEY || "ct3kpaBx2FRlwZEakQb9D4gYalEWrrly5BUyTuWGJFU=";
 const router = express.Router();
 
 // Routes
-router.get<{}, MessageResponse>("/authenticated", authenticate, (req, res) => {
+router.get<{}, AuthenticatedResponse>("/authenticated", authenticate, (req, res) => {
   res.json({
-    message: "Authenticated",
+    authenticated: true,
+    user: req.user,
   });
+});
+
+router.get("/", authenticate, async (_req: Request, res: Response) => {
+  try {
+    const { rows } = await pool.query<DbUser>(
+      `SELECT id, username, email, created_at, updated_at
+           FROM users
+       ORDER BY id`,
+    );
+
+    if (!rows.length) return res.status(404).send("No users found.");
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal server error.");
+  }
 });
 
 router.post("/register", async (req, res) => {
@@ -88,9 +112,14 @@ router.post("/login", async (req, res) => {
         httpOnly: true,
         sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         secure: process.env.NODE_ENV === "production",
-        maxAge: 24 * 60 * 60 * 1000,
+        maxAge: 24 * 60 * 60 * 1000 // 24 hrs,
       })
-      .header("Authorization", accessToken)
+      .cookie("accessToken", accessToken, {
+        httpOnly: true,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 5 * 60 * 1000 // 5 mins,
+        })
       .json(user);
   } catch (err) {
     console.error(err);
