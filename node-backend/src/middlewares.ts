@@ -32,37 +32,46 @@ export const authenticate = (
   res: Response,
   next: NextFunction,
 ) => {
-  const accessToken = req.headers["authorization"];
+  const accessToken = req.cookies["accessToken"];
   const refreshToken = req.cookies["refreshToken"];
 
-  if (!accessToken && !refreshToken) {
+  if (!accessToken && !refreshToken)
     return res.status(401).send("Access Denied. No token provided.");
-  }
+
+  if (!accessToken)
+    try {
+      // Valid access‑token
+      const decoded: any = jwt.verify(accessToken, secretKey);
+      req.user = decoded.user;
+      return next();
+    } catch {
+      console.log("Access token expired, trying refresh token");
+    }
+
+  // Try refresh‑token
+  if (!refreshToken)
+    return res.status(401).send("Access Denied. No refresh token provided.");
 
   try {
-    const decoded = jwt.verify(accessToken, secretKey);
+    const decoded: any = jwt.verify(refreshToken, secretKey);
+    const newAccess = jwt.sign({ user: decoded.user }, secretKey, {
+      expiresIn: "1h",
+    });
+
+    // Attach user
     req.user = decoded.user;
-    next();
-  } catch (error) {
-    if (!refreshToken) {
-      return res.status(401).send("Access Denied. No refresh token provided.");
-    }
+    res
+      .cookie("refreshToken", refreshToken, {
+        httpOnly: true,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        secure: process.env.NODE_ENV === "production",
+        path: "/",
+        maxAge: 24 * 60 * 60 * 1000,
+      })
+      .header("Authorization", `Bearer ${newAccess}`);
 
-    try {
-      const decoded = jwt.verify(refreshToken, secretKey);
-      const accessToken = jwt.sign({ user: decoded.user }, secretKey, {
-        expiresIn: "1h",
-      });
-
-      res
-        .cookie("refreshToken", refreshToken, {
-          httpOnly: true,
-          sameSite: "strict",
-        })
-        .header("Authorization", accessToken)
-        .send(decoded.user);
-    } catch (error) {
-      return res.status(400).send("Invalid Token.");
-    }
+    return next(); // 👈 continue to the route handler
+  } catch {
+    return res.status(400).send("Invalid refresh token.");
   }
 };

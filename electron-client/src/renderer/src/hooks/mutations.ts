@@ -32,8 +32,8 @@ export const useRegister = () => {
         onSuccess: async (response) => {
             const data = await response.json()
             console.log('Registration successful:', data)
-            toast.success(`Welcome, ${data.username}!`)
             navigate('/home')
+            toast.success(`Welcome, ${data.username}!`)
         },
         onError: (error) => {
             console.error('Registration failed:', error)
@@ -59,8 +59,8 @@ export const useLogin = () => {
         onSuccess: async (response) => {
             const data = await response.json()
             console.log('Login successful:', data)
-            toast.success(`Welcome back, ${data.username}`)
             navigate('/home')
+            toast.success(`Welcome back, ${data.username}`)
         },
         onError: (error) => {
             console.error('Login failed:', error)
@@ -94,6 +94,7 @@ export const useAuthenticated = () => {
         },
         onError: (error) => {
             console.error('Authentication failed:', error)
+
             navigate('/login')
             toast.error('You need to login first.')
         }
