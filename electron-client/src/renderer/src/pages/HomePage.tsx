@@ -6,8 +6,13 @@ import { io, Socket } from 'socket.io-client'
 import { Button } from '@/components/ui/button'
 import { Card } from '@/components/ui/card'
 import { toast } from 'sonner'
-import { Dialog, DialogContent, DialogDescription, DialogTitle } from '@radix-ui/react-dialog'
-import { DialogHeader } from '@/components/ui/dialog'
+import {
+    Dialog,
+    DialogContent,
+    DialogTitle,
+    DialogHeader,
+    DialogDescription
+} from '@/components/ui/dialog'
 
 interface RequestCallEvent {
     offer: RTCSessionDescriptionInit
@@ -185,7 +190,7 @@ function HomePage(): JSX.Element {
             answer: answer
         })
 
-        setPendingCall({} as RequestCallEvent)
+        setPendingCall(null)
     }
 
     if (authenticatedData?.user === undefined) {
@@ -193,7 +198,7 @@ function HomePage(): JSX.Element {
     }
 
     return (
-        <main className="flex flex-col items-center justify-center h-screen space-y-6">
+        <section className="flex flex-col items-center justify-center h-screen space-y-6">
             <h1 className="text-xl">Hello, {authenticatedData.user.username}</h1>
             <div className="flex space-x-4 gap-20">
                 <video
@@ -230,7 +235,7 @@ function HomePage(): JSX.Element {
                     </div>
                 </DialogContent>
             </Dialog>
-        </main>
+        </section>
     )
 }
 

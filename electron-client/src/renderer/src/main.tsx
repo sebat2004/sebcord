@@ -10,6 +10,7 @@ import { QueryClient, QueryClientProvider } from 'react-query'
 import Layout from './layout'
 import ProtectedRoute from './components/ProtectedRoutes'
 import RegistrationPage from './pages/RegistrationPage'
+import SidebarLayout from './sidebar-layout'
 
 const queryClient = new QueryClient()
 
@@ -24,7 +25,9 @@ ReactDOM.createRoot(document.getElementById('root') as HTMLElement).render(
                         <Route path="/register" element={<RegistrationPage />} />
                     </Route>
                     <Route element={<ProtectedRoute />}>
-                        <Route path="/home" element={<HomePage />} />
+                        <Route element={<SidebarLayout />}>
+                            <Route path="/home" element={<HomePage />} />
+                        </Route>
                     </Route>
                     <Route path="*" element={<div>404 Not Found</div>} />
                 </Routes>
