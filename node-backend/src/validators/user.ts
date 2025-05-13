@@ -19,7 +19,7 @@ export async function validateUser(
   password: string,
 ): Promise<AuthUser | null> {
   const { rows } = await pool.query<UserRow>(
-    `SELECT id, email, username, password_hash
+    `SELECT *
        FROM users
       WHERE email = $1
       LIMIT 1`,

@@ -34,9 +34,30 @@ router.get<{}, AuthenticatedResponse>(
 router.get("/", authenticate, async (_req: Request, res: Response) => {
   try {
     const { rows } = await pool.query<DbUser>(
-      `SELECT id, username, email, created_at, updated_at
+      `SELECT id, username, email, created_at, updated_at, last_activity_at
            FROM users
        ORDER BY id`,
+    );
+
+    if (!rows.length) return res.status(404).send("No users found.");
+    res.json(rows);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal server error.");
+  }
+});
+
+router.get("/search", authenticate, async (req, res) => {
+  const { query } = req.query;
+  if (!query) return res.status(400).send("Query is required.");
+
+  try {
+    const { rows } = await pool.query<DbUser>(
+      `SELECT id, username, email, created_at, updated_at
+             FROM users
+            WHERE username ILIKE $1
+         ORDER BY id`,
+      [`%${query}%`],
     );
 
     if (!rows.length) return res.status(404).send("No users found.");
@@ -65,14 +86,14 @@ router.post("/register", async (req, res) => {
     if (dup)
       return res
         .status(409)
-        .send("An account with that e‑mail or username already exists.");
+        .send("An account with that email or username already exists.");
 
     // Insert the user into db
     const passwordHash = await bcrypt.hash(password, 12);
     const { rows } = await pool.query(
       `INSERT INTO users (username, email, password_hash)
               VALUES ($1, $2, $3)
-           RETURNING id, username, email`,
+           RETURNING *`,
       [username, email, passwordHash],
     );
     const user = rows[0];
@@ -146,6 +167,33 @@ router.post("/refresh", (req, res) => {
     res.header("Authorization", accessToken).send(decoded.user);
   } catch (error) {
     return res.status(400).send("Invalid refresh token.");
+  }
+});
+
+router.post("/logout", (req, res) => {
+  res
+    .clearCookie("refreshToken", {
+      httpOnly: true,
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: process.env.NODE_ENV === "production",
+    })
+    .clearCookie("accessToken", {
+      httpOnly: true,
+      sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+      secure: process.env.NODE_ENV === "production",
+    })
+    .status(200)
+    .send("Logged out successfully.");
+});
+
+router.post("/delete", authenticate, async (req, res) => {
+  const userId = req.user!.id;
+  try {
+    await pool.query("DELETE FROM users WHERE id = $1", [userId]);
+    res.status(200).send("User deleted successfully.");
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal server error.");
   }
 });
 

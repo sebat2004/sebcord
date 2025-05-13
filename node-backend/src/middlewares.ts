@@ -1,6 +1,7 @@
 import { NextFunction, Request, Response } from "express";
 
 import ErrorResponse from "./interfaces/ErrorResponse";
+import pool from "./db";
 
 const jwt = require("jsonwebtoken");
 const secretKey =
@@ -66,9 +67,27 @@ export const authenticate = (
         sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
         secure: process.env.NODE_ENV === "production",
         path: "/",
-        maxAge: 24 * 60 * 60 * 1000,
+        maxAge: 24 * 60 * 60 * 1000, // 24 hrs,
       })
-      .header("Authorization", `Bearer ${newAccess}`);
+      .cookie("accessToken", newAccess, {
+        httpOnly: true,
+        sameSite: process.env.NODE_ENV === "production" ? "none" : "lax",
+        secure: process.env.NODE_ENV === "production",
+        maxAge: 5 * 60 * 1000, // 5 mins,
+      });
+
+    pool.query(
+      `UPDATE users
+        SET last_activity_at = NOW()
+        WHERE id = $1`,
+      [decoded.user.id],
+      (err) => {
+        if (err) {
+          console.error("Error updating last login:", err);
+          return res.status(500).send("Internal server error.");
+        }
+      },
+    );
 
     return next(); // 👈 continue to the route handler
   } catch {

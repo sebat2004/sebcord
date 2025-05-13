@@ -5,7 +5,6 @@ import { User } from "./custom";
 declare global {
   namespace Express {
     // extend the built in User with your own custom properties
-    interface User extends CustomUser {}
 
     // Extend the request and response objects with your own custom properties
     interface Request {
