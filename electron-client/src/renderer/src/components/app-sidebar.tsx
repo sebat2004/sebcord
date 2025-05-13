@@ -10,17 +10,19 @@ import {
     SidebarMenu,
     SidebarMenuButton,
     SidebarMenuItem,
-    SidebarTrigger
+    SidebarTrigger,
+    useSidebar
 } from '@/components/ui/sidebar'
 import logo from '@/assets/sebcord.png'
-import { useAuthenticated } from '@/hooks/mutations'
-import { useEffect } from 'react'
+import { Link } from 'react-router'
+import { useGetAuthenticated } from '@/hooks/queries'
+import ProfilePic from './profile-pic'
 
 // Menu items.
 const items = [
     {
         title: 'Friends',
-        url: '#',
+        url: '/home/friends',
         icon: Users
     },
     {
@@ -43,42 +45,38 @@ const items = [
 ]
 
 export function AppSidebar() {
-    const { mutate, data, isSuccess } = useAuthenticated()
-    console.log(data, isSuccess)
+    const { data, isLoading } = useGetAuthenticated()
+    const { open } = useSidebar()
 
-    useEffect(() => {
-        if (!data) {
-            mutate()
-        }
-    }, [data])
-
-    if (!data) {
+    if (isLoading || !data) {
         return null
     }
 
     return (
         <Sidebar collapsible="icon">
             <SidebarContent className="flex flex-col gap-0">
-                <SidebarHeader className="p-1">
-                    <div className="flex items-center justify-between p-2">
-                        <div className="flex items-center gap-2">
-                            <img src={logo} alt="User Avatar" className="h-10 w-10 " />
-                            <h1 className="text-md font-bold">Sebcord</h1>
-                        </div>
-                        <SidebarTrigger />
+                <SidebarHeader className="flex justify-center">
+                    <div className="flex items-center justify-between">
+                        {open && (
+                            <Link to="/home" className="flex items-center gap-2">
+                                <img src={logo} alt="User Avatar" className="h-10 w-10 " />
+                                <h1 className="text-md font-bold">Sebcord</h1>
+                            </Link>
+                        )}
+                        <SidebarTrigger className="hover:cursor-pointer" />
                     </div>
                     <hr className="h-0.5 border-t-0 bg-gray-200 dark:bg-white/10" />
                 </SidebarHeader>
-                <SidebarGroup className="p-1">
+                <SidebarGroup>
                     <SidebarGroupContent>
                         <SidebarMenu>
                             {items.map((item) => (
                                 <SidebarMenuItem key={item.title}>
-                                    <SidebarMenuButton asChild>
-                                        <a href={item.url}>
+                                    <SidebarMenuButton disabled={item.disabled} asChild>
+                                        <Link to={item.url}>
                                             <item.icon />
                                             <span>{item.title}</span>
-                                        </a>
+                                        </Link>
                                     </SidebarMenuButton>
                                 </SidebarMenuItem>
                             ))}
@@ -90,12 +88,10 @@ export function AppSidebar() {
             <SidebarFooter>
                 {/* User Profile */}
                 <div className="flex items-center gap-2 p-2">
-                    <h1 className="h-10 w-10 flex justify-center items-center bg-gray-200 rounded-full">
-                        <h1>{data.user?.username?.at(0)?.toUpperCase()}</h1>
-                    </h1>
+                    <ProfilePic username={data.user?.username || ''} size={10} />
                     <div className="flex flex-col">
                         <span className="text-sm font-semibold">{data.user?.username}</span>
-                        {/* <span className="text-xs text-gray-500">{data.user?.activityStatus}</span> */}
+                        <span className="text-xs text-gray-500">{data.user?.active}</span>
                     </div>
                 </div>
             </SidebarFooter>

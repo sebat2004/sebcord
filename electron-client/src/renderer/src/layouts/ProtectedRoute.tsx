@@ -1,5 +1,5 @@
-import { useAuthenticated } from '@/hooks/mutations'
-import { useEffect } from 'react'
+import { useGetAuthenticated } from '@/hooks/queries'
+import { useUserStore } from '@/store'
 import { Outlet, useNavigate } from 'react-router'
 
 type ProtectedRouteProps = {
@@ -8,11 +8,7 @@ type ProtectedRouteProps = {
 
 const ProtectedRoute = ({ redirectPath = '/' }: ProtectedRouteProps) => {
     const navigate = useNavigate()
-    const { mutate, isError, isSuccess } = useAuthenticated()
-
-    useEffect(() => {
-        mutate()
-    }, [])
+    const { isError, isSuccess } = useGetAuthenticated()
 
     if (isError) {
         navigate(redirectPath)

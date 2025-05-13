@@ -1,8 +1,7 @@
-import { useMutation } from 'react-query'
+import { useMutation, useQueryClient } from 'react-query'
 import { API_URL } from '../constants'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router'
-import { User } from '@/types'
 
 interface LoginData {
     email: string
@@ -19,19 +18,26 @@ export const useRegister = () => {
     const navigate = useNavigate()
 
     return useMutation({
-        mutationFn: (user: RegistrationData) => {
-            return fetch(`${API_URL}/user/register`, {
+        mutationFn: async (user: RegistrationData) => {
+            const response = await fetch(`${API_URL}/user/register`, {
                 method: 'POST',
+
                 body: JSON.stringify(user),
                 headers: {
                     'Content-Type': 'application/json'
                 },
                 credentials: 'include'
             })
-        },
-        onSuccess: async (response) => {
+
+            if (!response.ok) {
+                throw new Error('Registration failed. Please check your credentials.')
+            }
+
             const data = await response.json()
-            console.log('Registration successful:', data)
+
+            return data
+        },
+        onSuccess: async (data) => {
             navigate('/home')
             toast.success(`Welcome, ${data.username}!`)
         },
@@ -46,8 +52,8 @@ export const useLogin = () => {
     const navigate = useNavigate()
 
     return useMutation({
-        mutationFn: (user: LoginData) => {
-            return fetch(`${API_URL}/user/login`, {
+        mutationFn: async (user: LoginData) => {
+            const response = await fetch(`${API_URL}/user/login`, {
                 method: 'POST',
                 body: JSON.stringify(user),
                 headers: {
@@ -55,48 +61,92 @@ export const useLogin = () => {
                 },
                 credentials: 'include'
             })
-        },
-        onSuccess: async (response) => {
+
+            if (!response.ok) {
+                throw new Error('Login failed. Please check your credentials.')
+            }
+
             const data = await response.json()
-            console.log('Login successful:', data)
+            return data
+        },
+        onSuccess: async (data) => {
             navigate('/home')
             toast.success(`Welcome back, ${data.username}`)
         },
         onError: (error) => {
             console.error('Login failed:', error)
-            toast.error('Login failed. Please try again.')
+            toast.error(`${error}`)
         }
     })
 }
 
-interface AuthenticatedResponse {
-    authenticated: boolean
-    user?: User
-}
-
-export const useAuthenticated = () => {
-    const navigate = useNavigate()
+export const useAddFriend = () => {
+    const queryClient = useQueryClient()
 
     return useMutation({
-        mutationFn: async () => {
-            const data = await fetch(`${API_URL}/user/authenticated`, {
-                method: 'GET',
+        mutationFn: async (userId: string) => {
+            const response = await fetch(`${API_URL}/friends/requests/${userId}`, {
+                method: 'POST',
                 credentials: 'include'
             })
 
-            const response = await data.json()
-            console.log('Authenticated response:', response)
-
-            if (!response.authenticated) {
-                throw new Error('Not authenticated')
+            if (!response.ok) {
+                throw new Error('Failed to send friend request')
             }
-            return response as AuthenticatedResponse
+        },
+        onSuccess: () => {
+            toast.success('Friend request sent!')
+            queryClient.invalidateQueries(['friendRequests'])
         },
         onError: (error) => {
-            console.error('Authentication failed:', error)
+            toast.error(`${error}`)
+        }
+    })
+}
 
-            navigate('/login')
-            toast.error('You need to login first.')
+export const useRemoveFriend = () => {
+    const queryClient = useQueryClient()
+
+    return useMutation({
+        mutationFn: async (userId: string) => {
+            const response = await fetch(`${API_URL}/friends/${userId}`, {
+                method: 'DELETE',
+                credentials: 'include'
+            })
+
+            if (!response.ok) {
+                throw new Error('Failed to remove friend')
+            }
+        },
+        onSuccess: () => {
+            toast.success('Friend removed!')
+            queryClient.invalidateQueries(['friends'])
+            queryClient.invalidateQueries(['friendRequests'])
+        },
+        onError: (error) => {
+            console.error('Failed to remove friend:', error)
+            toast.error('Failed to remove friend.')
+        }
+    })
+}
+
+export const useAcceptFriendRequest = () => {
+    return useMutation({
+        mutationFn: async (userId: string) => {
+            const response = await fetch(`${API_URL}/friends/requests/accept/${userId}`, {
+                method: 'POST',
+                credentials: 'include'
+            })
+
+            if (!response.ok) {
+                throw new Error('Failed to accept friend request')
+            }
+        },
+        onSuccess: () => {
+            toast.success('Friend request accepted!')
+        },
+        onError: (error) => {
+            toast.error(`${error}`)
         }
     })
 }

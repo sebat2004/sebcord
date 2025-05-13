@@ -1,5 +1,6 @@
 // useCallStore.ts
 import { create } from 'zustand'
+import { FormattedUser, User } from './types'
 
 type CallState = {
     localStream: MediaStream | null
@@ -15,7 +16,7 @@ type CallState = {
     resetCallState: () => void
 }
 
-const useCallStore = create<CallState>((set) => ({
+export const useCallStore = create<CallState>((set) => ({
     localStream: null,
     remoteStream: null,
     peerConnection: null,
@@ -36,4 +37,12 @@ const useCallStore = create<CallState>((set) => ({
         })
 }))
 
-export default useCallStore
+type UserState = {
+    user: FormattedUser | null
+    setUser: (user: FormattedUser) => void
+}
+
+export const useUserStore = create<UserState>((set) => ({
+    user: null,
+    setUser: (user) => set({ user })
+}))

@@ -1,6 +1,5 @@
 import { useEffect, useRef, useState } from 'react'
-import { useAuthenticated } from '@/hooks/mutations'
-import { useGetUsers } from '@/hooks/queries'
+import { useGetAuthenticated, useGetUsers } from '@/hooks/queries'
 import { io, Socket } from 'socket.io-client'
 
 import { Button } from '@/components/ui/button'
@@ -27,7 +26,7 @@ interface AcceptCallEvent {
 }
 
 function HomePage(): JSX.Element {
-    const { mutate, data: authenticatedData } = useAuthenticated()
+    const { data: authenticatedData } = useGetAuthenticated()
     const { data: users } = useGetUsers()
     const [pendingCall, setPendingCall] = useState<RequestCallEvent | null>(null)
     const socketCxn = useRef<null | Socket>(null)
@@ -41,7 +40,6 @@ function HomePage(): JSX.Element {
 
     useEffect(() => {
         if (!authenticatedData || !authenticatedData.user) {
-            mutate()
             return
         }
 
@@ -54,23 +52,19 @@ function HomePage(): JSX.Element {
             if (data.receiverId !== authenticatedData.user!.id) {
                 return
             }
-            console.log('Incoming call from:', data.callerId)
-            console.log('Offer:', data.offer)
             setPendingCall(data)
         })
 
         socket.on('acceptCall', async (data: AcceptCallEvent) => {
-            console.log('Call accepted by:', data.receiverId)
-            console.log('Answer:', data.answer)
             if (data.callerId !== authenticatedData.user!.id) {
                 return
             }
 
             console.log(peerConnectionRef.current)
             if (data.answer) {
-                peerConnectionRef.current
-                    ?.setRemoteDescription(new RTCSessionDescription(data.answer))
-                    .then((a) => console.log('done'))
+                peerConnectionRef.current?.setRemoteDescription(
+                    new RTCSessionDescription(data.answer)
+                )
             }
         })
 
@@ -101,14 +95,11 @@ function HomePage(): JSX.Element {
         peerConnectionRef.current = peerConnection
 
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-        console.log('Got local stream', stream)
         localVideoRef.current!.srcObject = stream
         stream.getTracks().forEach((track) => {
-            console.log('Adding track', track)
             peerConnection.addTrack(track, stream)
         })
         peerConnection.ontrack = (event) => {
-            console.log('Remote track:', event)
             remoteVideoRef.current!.srcObject = event.streams[0]
         }
 
@@ -122,8 +113,6 @@ function HomePage(): JSX.Element {
                 return
             }
 
-            console.log(event)
-            console.log('Sending ICE candidate:', event.candidate)
             socketCxn.current?.emit('iceCandidate', {
                 callerId: authenticatedData!.user!.id,
                 receiverId: userId,
@@ -150,14 +139,11 @@ function HomePage(): JSX.Element {
         peerConnectionRef.current = peerConnection
 
         const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-        console.log('Got local stream', stream)
         localVideoRef.current!.srcObject = stream
         stream.getTracks().forEach((track) => {
-            console.log('Adding track', track)
             peerConnection.addTrack(track, stream)
         })
         peerConnection.ontrack = (event) => {
-            console.log('Remote track:', event)
             remoteVideoRef.current!.srcObject = event.streams[0]
         }
 
@@ -165,7 +151,7 @@ function HomePage(): JSX.Element {
             if (!event.candidate) {
                 return
             }
-            console.log('Sending ICE candidate:', event.candidate)
+
             socketCxn.current?.emit('iceCandidate', {
                 callerId: pending.callerId,
                 receiverId: pending.receiverId,
