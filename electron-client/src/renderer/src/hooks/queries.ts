@@ -165,3 +165,31 @@ export const useSearchUsers = (query: string | undefined) => {
         refetchOnWindowFocus: false
     })
 }
+
+export const useFetchUser = (userId: string | undefined) => {
+    if (!userId) {
+        return {
+            data: null,
+            isLoading: false,
+            isError: false
+        }
+    }
+    return useQuery({
+        queryKey: ['user', userId],
+        queryFn: async () => {
+            const response = await fetch(`${API_URL}/user/${userId}`, {
+                method: 'GET',
+                credentials: 'include'
+            })
+
+            if (!response.ok) {
+                throw new Error('Unable to fetch user')
+            }
+
+            const data = await response.json()
+
+            return formatUser(data) as FormattedUser
+        },
+        refetchOnWindowFocus: false
+    })
+}

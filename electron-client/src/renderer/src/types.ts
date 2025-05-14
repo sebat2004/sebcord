@@ -16,3 +16,21 @@ export interface FormattedUser {
     updated_at: Date
     active: boolean
 }
+
+export interface RequestCallEvent {
+    callerId: string
+    receiverId: string
+    offer: RTCSessionDescriptionInit
+}
+
+export interface AcceptCallEvent {
+    callerId: string
+    receiverId: string
+    answer: RTCSessionDescriptionInit
+}
+
+export interface IceEvent {
+    callerId: string
+    receiverId: string
+    candidate: RTCIceCandidateInit
+}
