@@ -26,7 +26,7 @@ import { useAddFriend } from '@/hooks/mutations'
 import { User } from '@/types'
 import { useState } from 'react'
 import { useDebounce } from 'use-debounce'
-import { useUserStore } from '@/store'
+import { useUserStore } from '@/stores/useUserStore'
 import { Link } from 'react-router'
 
 export function FriendsSearchMenu() {

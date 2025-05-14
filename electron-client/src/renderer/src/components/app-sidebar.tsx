@@ -1,4 +1,4 @@
-import { Users, Mail, Bean, Store } from 'lucide-react'
+import { Users, Mail, Bean, Store, Plus } from 'lucide-react'
 
 import {
     Sidebar,
@@ -15,8 +15,9 @@ import {
 } from '@/components/ui/sidebar'
 import logo from '@/assets/sebcord.png'
 import { Link } from 'react-router'
-import { useGetAuthenticated } from '@/hooks/queries'
+import { useGetAuthenticated, useGetFriends } from '@/hooks/queries'
 import ProfilePic from './profile-pic'
+import { Button } from './ui/button'
 
 // Menu items.
 const items = [
@@ -47,6 +48,7 @@ const items = [
 export function AppSidebar() {
     const { data, isLoading } = useGetAuthenticated()
     const { open } = useSidebar()
+    const { data: friends } = useGetFriends()
 
     if (isLoading || !data) {
         return null
@@ -83,7 +85,18 @@ export function AppSidebar() {
                         </SidebarMenu>
                     </SidebarGroupContent>
                 </SidebarGroup>
-                <hr className="h-0.5 border-t-0 bg-gray-200 dark:bg-white/10" />
+                <hr className="h-0.25 border-t-0 bg-gray-200 dark:bg-white/10" />
+                <div className="flex items-center justify-between px-4 py-3">
+                    <h3 className="text-xs font-semibold text-black dark:text-gray-400">
+                        Direct Messages
+                    </h3>
+                    {/* TODO: Add DM popup after clicking + button */}
+                    <Button variant="ghost" size="icon" asChild className="p-0">
+                        <Plus className="h-4 w-4 hover:text-gray-600" />
+                    </Button>
+
+                    {/* TODO: Add list of DMs */}
+                </div>
             </SidebarContent>
             <SidebarFooter>
                 {/* User Profile */}

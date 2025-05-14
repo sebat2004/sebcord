@@ -1,20 +1,13 @@
 import { useState } from 'react'
 import { Button } from '@/components/ui/button'
-import { Card, CardTitle, CardDescription } from '@/components/ui/card'
+import { Card } from '@/components/ui/card'
 import { Avatar, AvatarFallback, AvatarImage } from '@/components/ui/avatar'
 import { ScrollArea } from '@/components/ui/scroll-area'
 import { Dot, UsersRound } from 'lucide-react'
-import { useGetFriendRequests, useGetFriends } from '@/hooks/queries'
-import { useAcceptFriendRequest, useRemoveFriend } from '@/hooks/mutations'
 import { AddFriendSearchMenu, FriendsSearchMenu } from '@/components/commands'
 
 export default function FriendsPage() {
     const [addDialogOpen, setAddDialogOpen] = useState(false)
-    const { data: friendsData } = useGetFriends()
-    const { data: friendRequestData } = useGetFriendRequests()
-
-    const { mutate: removeFriend } = useRemoveFriend()
-    const { mutate: acceptFriendRequest } = useAcceptFriendRequest()
 
     return (
         <>

@@ -1,5 +1,5 @@
 import { useMutation, useQueryClient } from 'react-query'
-import { API_URL } from '../constants'
+import { API_URL } from '../lib/constants'
 import { toast } from 'sonner'
 import { useNavigate } from 'react-router'
 

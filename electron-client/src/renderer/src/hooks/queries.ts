@@ -1,10 +1,10 @@
 import { useQuery } from 'react-query'
-import { API_URL } from '../constants'
+import { API_URL } from '../lib/constants'
 import { FormattedUser, User } from '../types'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { formatUser } from '@/formatters/formatUser'
-import { useUserStore } from '@/store'
+import { useUserStore } from '@/stores/useUserStore'
 
 export const useGetUsers = () => {
     return useQuery({
@@ -57,7 +57,6 @@ export const useGetAuthenticated = () => {
 
             data.user = formatUser(data.user)
             setUser(data.user)
-            console.log('Authenticated user:', data.user)
             return data as AuthenticatedResponse
         },
         onError: (error) => {

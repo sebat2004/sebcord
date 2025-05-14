@@ -1,5 +1,4 @@
 import { useGetAuthenticated } from '@/hooks/queries'
-import { useUserStore } from '@/store'
 import { Outlet, useNavigate } from 'react-router'
 
 type ProtectedRouteProps = {
