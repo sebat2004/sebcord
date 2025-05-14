@@ -47,6 +47,27 @@ router.get("/", authenticate, async (_req: Request, res: Response) => {
   }
 });
 
+// Get user by id
+router.get("/:id", authenticate, async (req, res) => {
+  const userId = req.params.id;
+  if (!userId) return res.status(400).send("User ID is required.");
+
+  try {
+    const { rows } = await pool.query<DbUser>(
+      `SELECT id, username, email, created_at, updated_at
+             FROM users
+            WHERE id = $1`,
+      [userId],
+    );
+
+    if (!rows.length) return res.status(404).send("User not found.");
+    res.json(rows[0]);
+  } catch (err) {
+    console.error(err);
+    res.status(500).send("Internal server error.");
+  }
+});
+
 router.get("/search", authenticate, async (req, res) => {
   const { query } = req.query;
   if (!query) return res.status(400).send("Query is required.");

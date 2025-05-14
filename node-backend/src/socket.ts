@@ -47,7 +47,6 @@ export const createSocketServer = (server: any) => {
   );
 
   io.on("connection", (socket) => {
-    console.log("New socket connected:", socket.id);
     handleSocketConnection(socket);
   });
 
@@ -60,18 +59,14 @@ export const handleSocketConnection = (
   console.log("Socket connected:", socket.id);
 
   socket.on("message", (data) => {
-    console.log("Message received:", data);
-    // Handle incoming message
   });
 
   socket.on("callUser", (data) => {
     socket.broadcast.emit("callUser", data);
-    console.log("Call user event:", data);
   });
 
   socket.on("acceptCall", (data) => {
     socket.broadcast.emit("acceptCall", data);
-    console.log("Accept call event:", data);
   });
 
   socket.on("iceCandidate", (data) => {
@@ -81,6 +76,4 @@ export const handleSocketConnection = (
   socket.on("disconnect", () => {
     console.log("Socket disconnected:", socket.id);
   });
-
-  // Add more event listeners as needed
 };
