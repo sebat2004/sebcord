@@ -1,4 +1,4 @@
-import { AcceptCallEvent, IceEvent, RequestCallEvent } from '@/types'
+import { AcceptCallEvent, IceEvent, RequestCallEvent } from '@/lib/types'
 import { useEffect, useRef, useState, useCallback } from 'react'
 import { io, Socket } from 'socket.io-client'
 

@@ -8,23 +8,13 @@ import { Input } from '@/components/ui/input'
 import { PhoneCall, Plus, Video } from 'lucide-react'
 import { useCallStore } from '@/stores/useCallStore'
 import { useEffect, useRef } from 'react'
+import CallWindow from '@/components/CallWindow'
 
 export default function MessagePage() {
     const { id } = useParams()
     const { data: user } = useFetchUser(id)
-    const { localStream, remoteStream, call, accept, decline, hangup } = useCallStore()
-
-    const localVideoRef = useRef<HTMLVideoElement>(null)
-    const remoteVideoRef = useRef<HTMLVideoElement>(null)
-
-    useEffect(() => {
-        if (localVideoRef.current && localStream) {
-            localVideoRef.current.srcObject = localStream
-        }
-        if (remoteVideoRef.current && remoteStream) {
-            remoteVideoRef.current.srcObject = remoteStream
-        }
-    }, [localStream, remoteStream])
+    const { localStream, remoteStream, call, accept, decline, hangup, callInfo, videoOn } =
+        useCallStore()
 
     if (!user) {
         return <div className="flex items-center justify-center h-full">Loading...</div>
@@ -145,6 +135,8 @@ export default function MessagePage() {
         }
     ]
 
+    const callActive = localStream && remoteStream && callInfo?.receiverId === id
+
     return (
         <div className="flex flex-col h-full">
             <div className="flex items-center justify-start gap-2 p-3 border-b-1 h-[5%]">
@@ -165,26 +157,17 @@ export default function MessagePage() {
                 </div>
             </div>
 
-            {localStream && remoteStream && (
-                <div className="flex items-center justify-center h-[95%]">
-                    <video
-                        className="w-full h-full object-cover"
-                        autoPlay
-                        playsInline
-                        ref={localVideoRef}
-                    />
-
-                    <video
-                        className="w-full h-full object-cover"
-                        autoPlay
-                        playsInline
-                        ref={remoteVideoRef}
-                    />
+            {/* Call Window */}
+            {callActive && (
+                <div className="h-[40%]">
+                    <CallWindow />
                 </div>
             )}
 
-            <div className="flex gap-2 border-b-1 h-[95%]">
-                <div className="flex flex-col justify-between p-4 gap-2 h-full w-full lg:w-[75%]">
+            <div className={`flex gap-2 border-b-1 ${callActive ? 'h-[55%]' : 'h-[95%]'}`}>
+                <div
+                    className={`flex flex-col justify-between p-4 gap-2 h-full w-full ${!callActive && 'w-[75%]'}`}
+                >
                     <ScrollArea
                         scrollHideDelay={100}
                         className="flex flex-col gap-1 overflow-y-scroll"
@@ -212,15 +195,23 @@ export default function MessagePage() {
                         <Button size="sm">Send</Button>
                     </div>
                 </div>
-                <div className="hidden lg:flex flex-col gap-3 w-92 border-l-1 p-4 px-6">
-                    <ProfilePic username={user?.username} />
-                    <h1 className="text-xl font-semibold">{user?.username}</h1>
-                    <div className="flex items-center gap-2">
-                        <Button variant="secondary" size="sm" onClick={() => call(user.id)}>
-                            <PhoneCall />
-                        </Button>
+                {!callActive && (
+                    <div className="hidden lg:flex flex-col gap-3 w-92 border-l-1 p-4 px-6">
+                        <ProfilePic username={user?.username} />
+                        <h1 className="text-xl font-semibold">{user?.username}</h1>
+                        <div className="flex items-center gap-2">
+                            <Button
+                                variant="secondary"
+                                size="sm"
+                                onClick={() => {
+                                    call(user.id, true, true)
+                                }}
+                            >
+                                <PhoneCall />
+                            </Button>
+                        </div>
                     </div>
-                </div>
+                )}
             </div>
         </div>
     )

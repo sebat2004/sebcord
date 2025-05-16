@@ -1,4 +1,4 @@
-import { FormattedUser, User } from '@/types'
+import { FormattedUser, User } from '@/lib/types'
 
 export const formatUser = (user: User): FormattedUser => {
     const formattedUser = {

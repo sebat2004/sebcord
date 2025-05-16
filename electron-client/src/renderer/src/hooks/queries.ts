@@ -1,6 +1,6 @@
 import { useQuery } from 'react-query'
 import { API_URL } from '../lib/constants'
-import { FormattedUser, User } from '../types'
+import { FormattedUser, User } from '../lib/types'
 import { useNavigate } from 'react-router'
 import { toast } from 'sonner'
 import { formatUser } from '@/formatters/formatUser'

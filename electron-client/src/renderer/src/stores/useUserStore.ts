@@ -1,5 +1,5 @@
 import { create } from 'zustand'
-import { FormattedUser } from '../types'
+import { FormattedUser } from '../lib/types'
 
 type UserState = {
     user: FormattedUser | null

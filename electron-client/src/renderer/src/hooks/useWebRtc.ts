@@ -1,8 +1,9 @@
 import { useState, useRef, useEffect, useCallback } from 'react'
-import { RequestCallEvent, AcceptCallEvent } from '@/types'
+import { RequestCallEvent, AcceptCallEvent, CallInfo } from '@/lib/types'
 import { useSignaling } from '@/hooks/useSignaling'
 import { useUserStore } from '@/stores/useUserStore'
 import { useNavigate } from 'react-router'
+import { useCallStore } from '@/stores/useCallStore'
 
 // STUN configuration
 const RTC_CONFIG: RTCConfiguration = {
@@ -12,6 +13,7 @@ const RTC_CONFIG: RTCConfiguration = {
 export function useWebRTC() {
     const { onCall, onAnswer, onIce, callUser, acceptCall, sendIce, connected } = useSignaling()
     const { user } = useUserStore()
+    const { micOn, videoOn } = useCallStore()
     const navigate = useNavigate()
 
     if (!user) {
@@ -26,6 +28,18 @@ export function useWebRTC() {
     >('new')
     const pendingIce = useRef<RTCIceCandidateInit[]>([])
     const [incomingCall, setIncomingCall] = useState<RequestCallEvent | null>(null)
+    const [callInfo, setCallInfo] = useState<CallInfo | null>(null)
+
+    useEffect(() => {
+        if (localStream) {
+            localStream.getVideoTracks().forEach((track) => {
+                track.enabled = videoOn
+            })
+            localStream.getAudioTracks().forEach((track) => {
+                track.enabled = micOn
+            })
+        }
+    }, [localStream, micOn, videoOn])
 
     useEffect(() => {
         return onCall(async (evt: RequestCallEvent) => {
@@ -44,7 +58,6 @@ export function useWebRTC() {
         })
     }, [onAnswer])
 
-    // Handle incoming ICE
     useEffect(() => {
         return onIce((evt) => {
             const pc = pcRef.current
@@ -57,14 +70,21 @@ export function useWebRTC() {
     }, [onIce])
 
     const call = useCallback(
-        async (targetId: string) => {
+        async (targetId: string, audio: boolean, video: boolean) => {
             if (!connected) throw new Error('Signaling not ready')
             const pc = new RTCPeerConnection(RTC_CONFIG)
             pcRef.current = pc
 
-            const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-            setLocalStream(stream)
-            stream.getTracks().forEach((track) => pc.addTrack(track, stream))
+            if (videoOn || micOn) {
+                const stream = await navigator.mediaDevices.getUserMedia({
+                    video: true,
+                    audio: true
+                })
+                stream.getTracks().forEach((track) => {
+                    pc.addTrack(track, stream)
+                })
+                setLocalStream(stream)
+            }
 
             const remote = new MediaStream()
             setRemoteStream(remote)
@@ -82,8 +102,9 @@ export function useWebRTC() {
             const offer = await pc.createOffer()
             await pc.setLocalDescription(offer)
             callUser({ callerId: user.id, receiverId: targetId, offer })
+            setCallInfo({ callerId: user.id, receiverId: targetId })
         },
-        [connected]
+        [connected, micOn]
     )
 
     const hangup = useCallback(() => {
@@ -101,13 +122,17 @@ export function useWebRTC() {
 
         pcRef.current = pc
 
-        const stream = await navigator.mediaDevices.getUserMedia({ video: true, audio: true })
-        setLocalStream(stream)
-        stream.getTracks().forEach((track) => pc.addTrack(track, stream))
+        if (videoOn || micOn) {
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: true,
+                audio: true
+            })
+            setLocalStream(stream)
+            stream.getTracks().forEach((track) => pc.addTrack(track, stream))
+        }
 
         const remote = new MediaStream()
         setRemoteStream(remote)
-
         pc.ontrack = (e) => remote.addTrack(e.track)
 
         pc.onicecandidate = (e) => {
@@ -133,10 +158,11 @@ export function useWebRTC() {
         await pc.setLocalDescription(ans)
 
         acceptCall({
-            callerId: incomingCall.receiverId,
+            callerId: user.id,
             receiverId: incomingCall.callerId,
             answer: ans
         })
+        setCallInfo({ callerId: user.id, receiverId: incomingCall.callerId })
         setIncomingCall(null)
         navigate(`/home/message/${incomingCall.callerId}`)
     }, [incomingCall, acceptCall, sendIce])
@@ -151,6 +177,9 @@ export function useWebRTC() {
         remoteStream,
         connectionState,
         incomingCall,
+        callInfo,
+        micOn,
+        videoOn,
         call,
         accept,
         hangup,

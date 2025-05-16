@@ -1,11 +1,11 @@
 import { Toaster } from '@/components/ui/sonner'
 import { Outlet } from 'react-router'
-import { SidebarProvider } from '@/components/ui/sidebar'
 import { AppSidebar } from '@/components/app-sidebar'
 import { useCallStore } from '@/stores/useCallStore'
 import { useEffect } from 'react'
 import { useWebRTC } from '@/hooks/useWebRtc'
 import { AcceptCallDialog } from '@/components/dialogs'
+import Providers from './providers'
 
 export default function SidebarLayout() {
     const {
@@ -16,7 +16,10 @@ export default function SidebarLayout() {
         localStream,
         remoteStream,
         incomingCall,
-        connectionState
+        connectionState,
+        callInfo,
+        videoOn,
+        micOn
     } = useWebRTC()
     const {
         setCall,
@@ -26,7 +29,8 @@ export default function SidebarLayout() {
         setLocalStream,
         setRemoteStream,
         setIncomingCall,
-        setConnectionState
+        setConnectionState,
+        setCallInfo
     } = useCallStore()
 
     useEffect(() => {
@@ -38,28 +42,24 @@ export default function SidebarLayout() {
         setRemoteStream(remoteStream)
         setIncomingCall(incomingCall)
         setConnectionState(connectionState as RTCPeerConnectionState)
+        setCallInfo(callInfo)
     }, [
         call,
         accept,
         hangup,
         decline,
-        setCall,
-        setAccept,
-        setHangup,
-        setDecline,
-        setLocalStream,
-        setRemoteStream,
-        setIncomingCall,
-        setConnectionState,
         localStream,
         remoteStream,
         incomingCall,
-        connectionState
+        connectionState,
+        callInfo,
+        micOn,
+        videoOn
     ])
 
     return (
         <>
-            <SidebarProvider>
+            <Providers>
                 <div className="flex w-screen">
                     <AppSidebar />
                     <main className="flex-1 h-screen min-w-0">
@@ -68,7 +68,7 @@ export default function SidebarLayout() {
                 </div>
                 <AcceptCallDialog />
                 <Toaster duration={2500} />
-            </SidebarProvider>
+            </Providers>
         </>
     )
 }

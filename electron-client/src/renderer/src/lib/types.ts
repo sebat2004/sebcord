@@ -34,3 +34,8 @@ export interface IceEvent {
     receiverId: string
     candidate: RTCIceCandidateInit
 }
+
+export interface CallInfo {
+    callerId: string
+    receiverId: string
+}
