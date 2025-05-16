@@ -21,9 +21,14 @@ import {
 import { Skeleton } from './ui/skeleton'
 import ProfilePic from './profile-pic'
 
-import { useGetFriends, useGetSentFriendRequests, useSearchUsers } from '@/hooks/queries'
-import { useAddFriend } from '@/hooks/mutations'
-import { User } from '@/types'
+import {
+    useGetFriendRequests,
+    useGetFriends,
+    useGetSentFriendRequests,
+    useSearchUsers
+} from '@/hooks/queries'
+import { useAcceptFriendRequest, useAddFriend } from '@/hooks/mutations'
+import { User } from '@/lib/types'
 import { useState } from 'react'
 import { useDebounce } from 'use-debounce'
 import { useUserStore } from '@/stores/useUserStore'
@@ -31,11 +36,41 @@ import { Link } from 'react-router'
 
 export function FriendsSearchMenu() {
     const { data: friendsData } = useGetFriends()
+    const { data: friendsRequestData } = useGetFriendRequests()
+    const { mutate: acceptFriendRequest } = useAcceptFriendRequest()
 
     return (
         <Command className="rounded-lg border shadow-md md:min-w-[450px]">
             <CommandInput placeholder="Type a command or search..." />
+
             <CommandList>
+                <CommandGroup heading="Friend Requests">
+                    {friendsRequestData ? (
+                        friendsRequestData.map((friend) => {
+                            return (
+                                <CommandItem
+                                    className="flex justify-between items-center px-2"
+                                    value={friend.username}
+                                    key={friend.id}
+                                    onSelect={() => {
+                                        acceptFriendRequest(friend.id)
+                                    }}
+                                >
+                                    <div className="flex items-center gap-2">
+                                        <ProfilePic username={friend.username} size={10} />
+                                        <p>{friend.username}</p>
+                                    </div>
+
+                                    <CommandShortcut>
+                                        <Plus color="black" size={16} />
+                                    </CommandShortcut>
+                                </CommandItem>
+                            )
+                        })
+                    ) : (
+                        <Skeleton className="h-6 w-full" />
+                    )}
+                </CommandGroup>
                 <CommandGroup heading="Online">
                     {friendsData ? (
                         friendsData.map((friend) => {
@@ -80,7 +115,10 @@ export function FriendsSearchMenu() {
                                         </div>
 
                                         <CommandShortcut>
-                                            <MessageCircle size={16} />
+                                            <Link to={`/home/message/${friend.id}`}>
+                                                <MessageCircle color="black" size={16} />
+                                            </Link>
+                                            <EllipsisVertical color="black" size={16} />
                                         </CommandShortcut>
                                     </CommandItem>
                                 )
